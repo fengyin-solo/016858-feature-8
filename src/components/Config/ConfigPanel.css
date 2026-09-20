@@ -12,6 +12,11 @@
   gap: var(--spacing-md);
 }
 
+.config-field-error {
+  color: var(--color-error);
+  font-size: var(--font-size-xs);
+}
+
 .section-title {
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);

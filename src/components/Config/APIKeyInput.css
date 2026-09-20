@@ -4,10 +4,35 @@
   gap: var(--spacing-xs);
 }
 
+.input-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
 .input-label {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
+}
+
+.api-key-field.ant-input[readonly] {
+  color: var(--color-text-secondary);
+  background: var(--color-bg-tertiary);
+  cursor: not-allowed;
+}
+
+.api-key-readonly-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
 }
 
 .input-error {

@@ -1,9 +1,12 @@
-import type { AppConfig, Conversation, PromptTemplate } from '../types';
+import type { AppConfig, Conversation, PromptTemplate, APIKeyScenario } from '../types';
 import { DEFAULT_CONFIG, DEFAULT_TEMPLATES } from '../types';
+import { validateAPIKey } from '../utils/validators';
 
 // Storage keys
 const STORAGE_KEYS = {
   CONFIG: 'react-chat-config',
+  DEMO_API_KEY: 'react-chat-demo-api-key',
+  API_KEY_SCENARIO: 'react-chat-api-key-scenario',
   CONVERSATIONS: 'react-chat-conversations',
   PROMPT_TEMPLATES: 'react-chat-prompt-templates',
 } as const;
@@ -98,6 +101,73 @@ export function clearConfig(): void {
     localStorage.removeItem(STORAGE_KEYS.CONFIG);
   } catch (error) {
     console.error('Failed to clear config:', error);
+  }
+}
+
+/**
+ * 保存演示 API Key。演示 Key 与原有配置分开存储，只缓存格式有效的值。
+ * @param apiKey 演示 API Key
+ */
+export function saveDemoAPIKey(apiKey: string): void {
+  if (!validateAPIKey(apiKey)) {
+    throw new Error('演示 API 密钥格式无效');
+  }
+
+  try {
+    localStorage.setItem(STORAGE_KEYS.DEMO_API_KEY, JSON.stringify({
+      value: encrypt(apiKey),
+    }));
+  } catch (error) {
+    console.error('Failed to save demo API key:', error);
+    throw new Error('保存演示 API 密钥失败');
+  }
+}
+
+/**
+ * 从 localStorage 加载演示 API Key
+ * @returns 演示 API Key；不存在或已损坏时返回空字符串
+ */
+export function loadDemoAPIKey(): string {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.DEMO_API_KEY);
+
+    if (!stored) {
+      return '';
+    }
+
+    const parsed = JSON.parse(stored) as { value?: unknown };
+    const apiKey = typeof parsed.value === 'string' ? decrypt(parsed.value) : '';
+
+    return validateAPIKey(apiKey) ? apiKey : '';
+  } catch (error) {
+    console.error('Failed to load demo API key:', error);
+    return '';
+  }
+}
+
+/**
+ * 保存当前使用的 API Key 归属
+ * @param scenario API Key 归属
+ */
+export function saveAPIKeyScenario(scenario: APIKeyScenario): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.API_KEY_SCENARIO, JSON.stringify(scenario));
+  } catch (error) {
+    console.error('Failed to save API key scenario:', error);
+  }
+}
+
+/**
+ * 加载当前使用的 API Key 归属
+ * @returns API Key 归属；缓存无效时默认为自用
+ */
+export function loadAPIKeyScenario(): APIKeyScenario {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.API_KEY_SCENARIO);
+    const scenario: unknown = stored ? JSON.parse(stored) : 'personal';
+    return scenario === 'demo' ? 'demo' : 'personal';
+  } catch {
+    return 'personal';
   }
 }
 

@@ -26,6 +26,8 @@ export type {
   APIConfig,
   ModelInfo,
   ConfigValidation,
+  APIKeyScenario,
+  APIKeyScenarioErrors,
 } from './config'
 
 export type {

@@ -1,4 +1,17 @@
 /**
+ * API 密钥归属场景
+ */
+export type APIKeyScenario = 'personal' | 'demo';
+
+/**
+ * 两套 API 密钥各自的校验错误
+ */
+export interface APIKeyScenarioErrors {
+  personal?: string;
+  demo?: string;
+}
+
+/**
  * 应用配置
  */
 export interface AppConfig {
