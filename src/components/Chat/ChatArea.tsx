@@ -31,7 +31,7 @@ export function ChatArea() {
     createConversation,
   } = useChatStore();
 
-  const { config, isValid: isConfigValid } = useConfigStore();
+  const { config, isValid: isConfigValid, getActiveAPIKey } = useConfigStore();
   const { setConfigPanelVisible } = useUIStore();
 
   const conversation = getActiveConversation();
@@ -78,6 +78,7 @@ export function ChatArea() {
       try {
         const stream = sendMessageStream(apiMessages, {
           ...config,
+          apiKey: getActiveAPIKey(),
           stream: true,
         });
 
@@ -114,6 +115,7 @@ export function ChatArea() {
       activeConversationId,
       isConfigValid,
       config,
+      getActiveAPIKey,
       messages,
       addMessage,
       startStreaming,

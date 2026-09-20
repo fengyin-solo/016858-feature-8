@@ -24,6 +24,7 @@ export type {
 export type {
   AppConfig,
   APIConfig,
+  APIKeyScope,
   ModelInfo,
   ConfigValidation,
 } from './config'
@@ -35,5 +36,5 @@ export type {
   DefaultCategory,
 } from './promptTemplate'
 
-export { AVAILABLE_MODELS, DEFAULT_CONFIG } from './config'
+export { AVAILABLE_MODELS, DEFAULT_CONFIG, API_KEY_SCOPE_LABELS } from './config'
 export { DEFAULT_CATEGORIES, DEFAULT_TEMPLATES } from './promptTemplate'

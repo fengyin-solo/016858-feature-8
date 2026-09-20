@@ -1,4 +1,19 @@
 /**
+ * API 密钥归属场景
+ * - personal: 自用密钥，可随时改动
+ * - demo: 演示密钥，填好并锁定后只能查看，不能改动也不能被清空
+ */
+export type APIKeyScope = 'personal' | 'demo';
+
+/**
+ * 密钥归属场景的中文标签
+ */
+export const API_KEY_SCOPE_LABELS: Record<APIKeyScope, string> = {
+  personal: '自用',
+  demo: '演示',
+};
+
+/**
  * 应用配置
  */
 export interface AppConfig {

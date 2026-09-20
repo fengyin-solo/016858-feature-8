@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   CONFIG: 'react-chat-config',
   CONVERSATIONS: 'react-chat-conversations',
   PROMPT_TEMPLATES: 'react-chat-prompt-templates',
+  DEMO_API_KEY: 'react-chat-demo-api-key',
 } as const;
 
 /**
@@ -102,6 +103,60 @@ export function clearConfig(): void {
 }
 
 /**
+ * 演示密钥的本地记录
+ * locked 为 true 表示演示密钥已填好并锁定：只能查看，不能改动也不能被清空
+ */
+interface DemoAPIKeyRecord {
+  /** 加密后的演示密钥 */
+  apiKey: string;
+  /** 是否已锁定（只读） */
+  locked: boolean;
+}
+
+/**
+ * 保存演示密钥到 localStorage（与自用密钥分开缓存）
+ * 保存后即锁定为只读，锁定状态一并持久化，刷新或返回后仍保持只读
+ * @param apiKey 演示密钥
+ */
+export function saveDemoAPIKey(apiKey: string): void {
+  try {
+    const record: DemoAPIKeyRecord = {
+      apiKey: encrypt(apiKey),
+      locked: true,
+    };
+    localStorage.setItem(STORAGE_KEYS.DEMO_API_KEY, JSON.stringify(record));
+  } catch (error) {
+    console.error('Failed to save demo API key:', error);
+    throw new Error('保存演示密钥失败');
+  }
+}
+
+/**
+ * 从 localStorage 加载演示密钥及其锁定状态
+ * @returns 演示密钥与锁定标记；从未保存过时返回未锁定的空密钥
+ */
+export function loadDemoAPIKey(): { apiKey: string; locked: boolean } {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.DEMO_API_KEY);
+
+    if (!stored) {
+      return { apiKey: '', locked: false };
+    }
+
+    const parsed = JSON.parse(stored) as Partial<DemoAPIKeyRecord>;
+    const apiKey = decrypt(parsed.apiKey || '');
+
+    // 只要本地存有非空密钥就保持锁定；密钥缺失时不锁定，否则永远无法再填写
+    const locked = Boolean(apiKey) && (parsed.locked ?? true);
+
+    return { apiKey, locked };
+  } catch (error) {
+    console.error('Failed to load demo API key:', error);
+    return { apiKey: '', locked: false };
+  }
+}
+
+/**
  * 保存对话列表到 localStorage
  * @param conversations 对话列表
  */
@@ -167,6 +222,7 @@ export function clearConversations(): void {
 
 /**
  * 清除所有存储数据
+ * 注意：演示密钥锁定后不可被清空，这里同样保留
  */
 export function clearAllStorage(): void {
   clearConfig();

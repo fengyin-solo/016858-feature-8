@@ -1,11 +1,13 @@
 
-import { Drawer, Button, Divider, message } from 'antd';
-import { SaveOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Drawer, Button, Divider, Segmented, message } from 'antd';
+import { SaveOutlined, ReloadOutlined, LockOutlined } from '@ant-design/icons';
 import { APIKeyInput } from './APIKeyInput';
 import { ModelSelector } from './ModelSelector';
 import { ParameterSlider } from './ParameterSlider';
 import { useConfigStore } from '../../stores/configStore';
 import { useUIStore } from '../../stores/uiStore';
+import type { APIKeyScope } from '../../types';
+import { validateAPIKey } from '../../utils/validators';
 import './ConfigPanel.css';
 
 /**
@@ -18,9 +20,35 @@ export function ConfigPanel() {
     updateConfig,
     resetConfig,
     validateCurrentConfig,
+    keyScope,
+    setKeyScope,
+    demoApiKey,
+    demoKeyLocked,
+    demoKeyDraft,
+    demoKeyError,
+    setDemoKeyDraft,
+    setDemoAPIKey,
   } = useConfigStore();
 
   const { configPanelVisible, setConfigPanelVisible, isMobile } = useUIStore();
+
+  const isDemoScope = keyScope === 'demo';
+  const demoReadOnly = isDemoScope && demoKeyLocked;
+
+  // 两套归属各自独立的取值，来回切换时正在填写的内容不会串到另一套
+  const apiKeyValue = !isDemoScope
+    ? config.apiKey
+    : demoKeyLocked
+      ? demoApiKey
+      : demoKeyDraft;
+
+  // 两套归属各自的为空 / 格式无效提示
+  const apiKeyError = !isDemoScope
+    ? errors.apiKey
+    : demoKeyError ??
+      (demoKeyDraft && !validateAPIKey(demoKeyDraft)
+        ? '演示密钥格式无效，请检查后重试'
+        : undefined);
 
   const handleClose = () => {
     setConfigPanelVisible(false);
@@ -38,6 +66,24 @@ export function ConfigPanel() {
   const handleReset = () => {
     resetConfig();
     message.info('已恢复默认配置');
+  };
+
+  const handleScopeChange = (value: string | number) => {
+    setKeyScope(value as APIKeyScope);
+  };
+
+  const handleAPIKeyChange = (value: string) => {
+    if (isDemoScope) {
+      setDemoKeyDraft(value);
+    } else {
+      updateConfig({ apiKey: value });
+    }
+  };
+
+  const handleLockDemoKey = () => {
+    if (setDemoAPIKey(demoKeyDraft)) {
+      message.success('演示密钥已保存并锁定，仅可查看');
+    }
   };
 
   return (
@@ -62,11 +108,32 @@ export function ConfigPanel() {
       <div className="config-panel-content">
         <section className="config-section">
           <h3 className="section-title">API 配置</h3>
-          <APIKeyInput
-            value={config.apiKey}
-            onChange={(value) => updateConfig({ apiKey: value })}
-            error={errors.apiKey}
+          <Segmented
+            block
+            value={keyScope}
+            onChange={handleScopeChange}
+            options={[
+              { label: '自用密钥', value: 'personal' },
+              { label: '演示密钥', value: 'demo' },
+            ]}
           />
+          <APIKeyInput
+            scope={keyScope}
+            value={apiKeyValue}
+            onChange={handleAPIKeyChange}
+            error={apiKeyError}
+            readOnly={demoReadOnly}
+          />
+          {isDemoScope && !demoKeyLocked && (
+            <Button
+              type="primary"
+              ghost
+              icon={<LockOutlined />}
+              onClick={handleLockDemoKey}
+            >
+              保存并锁定演示密钥
+            </Button>
+          )}
         </section>
 
         <Divider />

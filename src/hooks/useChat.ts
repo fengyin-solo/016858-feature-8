@@ -31,7 +31,7 @@ export function useChat() {
     cancelStreaming,
   } = useChatStore();
 
-  const { config, isValid: isConfigValid } = useConfigStore();
+  const { config, isValid: isConfigValid, getActiveAPIKey } = useConfigStore();
   const { setConfigPanelVisible } = useUIStore();
 
   const conversation = getActiveConversation();
@@ -75,6 +75,7 @@ export function useChat() {
       try {
         const stream = sendMessageStream(apiMessages, {
           ...config,
+          apiKey: getActiveAPIKey(),
           stream: true,
         });
 
@@ -111,6 +112,7 @@ export function useChat() {
       activeConversationId,
       isConfigValid,
       config,
+      getActiveAPIKey,
       messages,
       addMessage,
       startStreaming,
